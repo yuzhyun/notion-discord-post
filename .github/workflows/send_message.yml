@@ -24,7 +24,7 @@ jobs:
     - name : Install Dependencies 
       run: npm install
     - name : Send Reserved Messages on Notion
-      run : npx tsc app.ts && node app.js
+      run : npx tsc && node app.js
       env : 
         NOTION_TOKEN : ${{secrets.NOTION_TOKEN}}
         DATABASE_ID : ${{secrets.DATABASE_ID}}
