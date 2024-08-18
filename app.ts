@@ -61,7 +61,8 @@ const sendReservedMessages = async (databaseId:string, webhookUrl:string) => {
     }
 
     // 예약된 시간이 지나지 않은 메세지일 경우 발송하지 않고 넘어가기
-    const reservedTime = new Date(messagePage.properties["예약 시간"].date.start);
+    let reservedTime = new Date(messagePage.properties["예약 시간"].date.start);
+    reservedTime.setUTCHours(reservedTime.getHours() + 9);
     let nowTime = new Date()
     nowTime.setUTCHours(nowTime.getUTCHours() + 9);
     if (reservedTime > nowTime) continue;
