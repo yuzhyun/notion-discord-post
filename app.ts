@@ -62,9 +62,8 @@ const sendReservedMessages = async (databaseId:string, webhookUrl:string) => {
 
     // 예약된 시간이 지나지 않은 메세지일 경우 발송하지 않고 넘어가기
     const reservedTime = new Date(messagePage.properties["예약 시간"].date.start);
-    const nowTime = new Date();
-    nowTime.setHours(nowTime.getHours() + 9);
-
+    let nowTime = new Date()
+    nowTime.setUTCHours(nowTime.getUTCHours() + 9);
     if (reservedTime > nowTime) continue;
     
     // 예약된 메시지 페이지에 있는 블럭들을 가져오기 
