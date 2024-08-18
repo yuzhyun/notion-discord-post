@@ -94,6 +94,8 @@ const sendReservedMessages = async (databaseId:string, webhookUrl:string) => {
         })
       }
     }
+    console.log(`발송 성공! 예정 시간 : ${reservedTime}, 현재 시간 : ${nowTime}`);
+
   }
 };
 
