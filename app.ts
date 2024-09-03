@@ -45,6 +45,17 @@ const getReservedMessages = async (databaseId : string) => {
   return response.results;
 } 
 
+interface LinkObject {
+  databaseId:string,
+  webhookUrl:string
+}
+const sendAllResservedMessages = async (linkDatabaseId :string) => {
+  const linkObjectArray:LinkObject[] = [];
+  for (const linkObject of linkObjectArray) {
+    await sendReservedMessages(linkObject.databaseId,linkObject.webhookUrl);
+  }    
+} 
+
 const sendReservedMessages = async (databaseId:string, webhookUrl:string) => {
   for (let messagePage of await getReservedMessages(databaseId))
   {
@@ -101,15 +112,11 @@ const sendReservedMessages = async (databaseId:string, webhookUrl:string) => {
 };
 
 try {
-  if (process.env.DATABASE_ID === undefined) {
-    throw new Error("노션 데이터베이스 ID를 환경변수에서 읽을 수 없습니다.");
+  if (process.env.LINK_DATABASE_ID === undefined) {
+    throw new Error("노션 - 디스코드 링크 데이터베이스 ID를 환경변수에서 읽을 수 없습니다.");
   }
-  if (process.env.WEBHOOK_URL === undefined) {
-    throw new Error("디스코드 웹훅 URL 주소를 환경변수에서 읽을 수 없습니다.");
-  }
-  const databaseId : string = process.env.DATABASE_ID;
-  const webhookUrl : string = process.env.WEBHOOK_URL; 
-  sendReservedMessages(databaseId,webhookUrl); 
+  const linkDatabaseId : string = process.env.LINK_DATABASE_ID;
+  sendAllResservedMessages(linkDatabaseId); 
 } catch (error) {
   console.error(error);  
 }
