@@ -28,6 +28,53 @@ const sendMessage = async (webhookUrl : string, message : DiscordMessage) => {
   );
 }
 
+const parseDatabaseId = (databaseURL : string) => {
+  const databaseIdObject = /[a-z0-9]+\?v/.exec(databaseURL);
+  if (databaseIdObject === null) {
+    throw new Error("노션 데이터 베이스 ID를 찾을 수 없습니다.");
+  }
+  const databaseId = databaseIdObject[0].split("\?v")[0];
+  return databaseId; 
+}
+
+interface LinkObject {
+  databaseId:string,
+  webhookUrl:string
+}
+/**
+ * 노션에 있는 링크 관리 데이터베이스에서 노션 DB-디스코드 웹훅 연결 정보 페이지를 가져오는 함수
+ * @param linkDatabaseId - 노션 데이터베이스 ID
+ */
+const getLinks = async (linkDatabaseId : string) => {
+  const response = await notion.databases.query({
+    database_id: linkDatabaseId
+  });
+  let linkObjectArray:LinkObject[] = [];
+  for (const linkPage of response.results) {
+    if (!isFullPageOrDatabase(linkPage)) {
+      continue;
+    }
+    if (!("rich_text" in linkPage.properties["디스코드 웹훅 URL"])) {
+      continue;
+    }
+    if (!("rich_text" in linkPage.properties["노션 데이터베이스 링크"])) {
+      continue;
+    } 
+    const databaseURLObject = linkPage.properties["노션 데이터베이스 링크"].rich_text.at(0);
+    if (databaseURLObject === undefined) {
+      continue;
+    }
+    const webhookURLObject = linkPage.properties["디스코드 웹훅 URL"].rich_text.at(0);
+    if (webhookURLObject === undefined) {
+      continue;
+    }
+    const databaseURL = databaseURLObject.plain_text;
+    const databaseId = parseDatabaseId(databaseURL);
+    const webhookURL = webhookURLObject.plain_text;
+    linkObjectArray.push({webhookUrl:webhookURL,databaseId:databaseId});
+  }
+  return linkObjectArray;
+} 
 /**
  * 노션에 있는 데이터베이스에서 메시지가 담겨있는 페이지들을 가져와서 반환하는 함수
  * @param databaseId - 노션 데이터베이스 ID
@@ -50,7 +97,7 @@ interface LinkObject {
   webhookUrl:string
 }
 const sendAllResservedMessages = async (linkDatabaseId :string) => {
-  const linkObjectArray:LinkObject[] = [];
+  const linkObjectArray:LinkObject[] = await getLinks(linkDatabaseId);
   for (const linkObject of linkObjectArray) {
     await sendReservedMessages(linkObject.databaseId,linkObject.webhookUrl);
   }    
