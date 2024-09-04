@@ -173,11 +173,11 @@ const sendReservedMessages = async (databaseId:string, webhookUrl:string) => {
 };
 
 try {
-  if (process.env.LINK_DATABASE_ID === undefined) {
+  if (process.env.LINK_DATABASE_URL === undefined) {
     throw new Error("노션 - 디스코드 링크 데이터베이스 ID를 환경변수에서 읽을 수 없습니다.");
   }
-  const linkDatabaseId : string = process.env.LINK_DATABASE_ID;
-  sendAllReservedMessages(linkDatabaseId); 
+  const linkDatabaseUrl : string = process.env.LINK_DATABASE_URL;
+  sendAllReservedMessages(parseDatabaseId(linkDatabaseUrl)); 
 } catch (error) {
   console.error(error);  
 }
