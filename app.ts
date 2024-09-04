@@ -1,6 +1,20 @@
 import fetch from 'node-fetch';
 import {Client,isFullPageOrDatabase,isFullBlock} from '@notionhq/client';
 
+/**
+ * 디스코드 메시지를 나타내는 인터페이스
+ */
+interface DiscordMessage  {
+  content : string 
+}
+/**
+ * 메시지 예약 데이터베이스 ID와 디스코드 웹훅 링크가 있는 객체 인터페이스 
+ */
+interface LinkObject {
+  databaseId:string,
+  webhookUrl:string
+}
+
 if (process.env.NOTION_TOKEN === undefined) {
   throw new Error("노션 API 토큰을 환경변수에서 읽을 수 없습니다.");
 }
@@ -8,13 +22,9 @@ const notion = new Client({
   auth: process.env.NOTION_TOKEN,
 })
 
-interface DiscordMessage  {
-  content : string 
-}
-
 /**
  * 웹훅으로 디스코드 채널에 메시지를 보내는 함수
- * @param webhookUrl - 디스코드 웹훕 주소 URL
+ * @param webhookUrl - 디스코드 웹훅 주소 URL
  * @param message - 디스코드 메시지 객체
  */
 const sendMessage = async (webhookUrl : string, message : DiscordMessage) => {
@@ -27,7 +37,11 @@ const sendMessage = async (webhookUrl : string, message : DiscordMessage) => {
     }
   );
 }
-
+/**
+ * 노션 데이터베이스 URL에서 데이터베이스 ID만 추출해서 반환하는 함수 
+ * @param databaseURL 노션 데이터베이스 (보기)링크(URL)
+ * @returns databaseId 노션 데이터베이스 ID
+ */
 const parseDatabaseId = (databaseURL : string) => {
   const databaseIdObject = /[a-z0-9]+\?v/.exec(databaseURL);
   if (databaseIdObject === null) {
@@ -37,15 +51,11 @@ const parseDatabaseId = (databaseURL : string) => {
   return databaseId; 
 }
 
-interface LinkObject {
-  databaseId:string,
-  webhookUrl:string
-}
 /**
- * 노션에 있는 링크 관리 데이터베이스에서 노션 DB-디스코드 웹훅 연결 정보 페이지를 가져오는 함수
+ * 노션에 있는 링크 관리 데이터베이스에서 노션 DB-디스코드 웹훅 연결 정보 객체를 가져오는 함수
  * @param linkDatabaseId - 노션 데이터베이스 ID
  */
-const getLinks = async (linkDatabaseId : string) => {
+const getLinkObjectArray = async (linkDatabaseId : string) => {
   const response = await notion.databases.query({
     database_id: linkDatabaseId
   });
@@ -92,17 +102,21 @@ const getReservedMessages = async (databaseId : string) => {
   return response.results;
 } 
 
-interface LinkObject {
-  databaseId:string,
-  webhookUrl:string
-}
-const sendAllResservedMessages = async (linkDatabaseId :string) => {
-  const linkObjectArray:LinkObject[] = await getLinks(linkDatabaseId);
+/**
+ * 모든 노션 데이터베이스의 예약된 메시지를 전송하는 함수  
+ * @param linkDatabaseId 링크 노션 데이터베이스 ID
+ */
+const sendAllReservedMessages = async (linkDatabaseId :string) => {
+  const linkObjectArray:LinkObject[] = await getLinkObjectArray(linkDatabaseId);
   for (const linkObject of linkObjectArray) {
     await sendReservedMessages(linkObject.databaseId,linkObject.webhookUrl);
   }    
 } 
-
+/**
+ * 예약 메시지 데이터베이스에 있는 예약된 메시지를 디스코드 웹훅으로 전송하는 함수
+ * @param databaseId 예약 메시지 데이터베이스 ID
+ * @param webhookUrl 디스코드 웹훅 URL 주소
+ */
 const sendReservedMessages = async (databaseId:string, webhookUrl:string) => {
   for (let messagePage of await getReservedMessages(databaseId))
   {
@@ -163,7 +177,7 @@ try {
     throw new Error("노션 - 디스코드 링크 데이터베이스 ID를 환경변수에서 읽을 수 없습니다.");
   }
   const linkDatabaseId : string = process.env.LINK_DATABASE_ID;
-  sendAllResservedMessages(linkDatabaseId); 
+  sendAllReservedMessages(linkDatabaseId); 
 } catch (error) {
   console.error(error);  
 }
