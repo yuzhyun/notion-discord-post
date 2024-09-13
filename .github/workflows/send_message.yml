@@ -27,5 +27,4 @@ jobs:
       run : npx tsc && node app.js
       env : 
         NOTION_TOKEN : ${{secrets.NOTION_TOKEN}}
-        DATABASE_ID : ${{secrets.DATABASE_ID}}
-        WEBHOOK_URL : ${{secrets.WEBHOOK_URL}}
+        LINK_DATABASE_URL : ${{secrets.LINK_DATABASE_URL}}
