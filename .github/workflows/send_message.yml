@@ -2,7 +2,7 @@ name: Send Reserved Messages
 
 on:
   schedule:
-    - cron: '57 * * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
