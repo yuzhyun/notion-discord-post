@@ -2,7 +2,7 @@ name: Send Reserved Messages
 
 on:
   schedule:
-    - cron: '11 * * * *'
+    - cron: '0/10 * * * *'
 
 jobs:
   build:
